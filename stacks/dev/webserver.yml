@@ -1,0 +1,47 @@
+version: "3.9"
+
+services:
+  webserver:
+    env_file:
+      - config/.webserver.env
+    image: nginx:latest
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 256m
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - type: bind
+        source: ~/workspace/server/stacks/dev/webserver/nginx.conf
+        target: /etc/nginx/nginx.conf
+      - type: bind
+        source: ~/workspace/server/stacks/dev/webserver/conf.d/
+        target: /etc/nginx/conf.d/
+        read_only: true
+      - type: bind
+        source: ~/workspace/server/stacks/dev/webserver/commons/
+        target: /etc/nginx/commons/
+        read_only: true
+      - type: bind
+        source: ~/workspace/server/stacks/shared/ssl/
+        target: /etc/nginx/ssl/
+        read_only: true
+      - type: bind
+        source: /data/dev/app/frontend/web/
+        target: /var/www/dev/web/
+      - type: bind
+        source: /data/dev/storage/
+        target: /var/www/storage/
+      - type: bind
+        source: /data/dev/nginx/log/
+        target: /var/log/nginx/
+    networks:
+      - network
+
+networks:
+  network:
+    name: dev_network
+    external: true

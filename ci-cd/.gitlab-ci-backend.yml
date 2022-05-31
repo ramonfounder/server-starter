@@ -1,0 +1,37 @@
+stages:
+  - build
+  - deploy
+
+variables:
+  GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+  GRADLE_USER_HOME: ".gradle" 
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .gradle
+
+workflow:
+  rules:
+    - if: '$CI_COMMIT_BRANCH =~ /^sprint-.*$/'
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: always
+
+build-dev:
+  image: gradle:7.3-jdk17
+  stage: build
+  script:
+    - gradle --build-cache assemble
+    - chown 1000:1000 build/libs/*.jar
+    - mv build/libs/*.jar /data/dev/app/backend/management/app.jar
+  only:
+    - /^sprint-.*$/
+
+deploy-dev:
+  stage: deploy
+  script:
+    - docker service scale backend_management=0
+    - docker service scale backend_management=1
+  only:
+    - /^sprint-.*$/

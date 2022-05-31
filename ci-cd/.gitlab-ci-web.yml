@@ -1,0 +1,34 @@
+stages:
+  - deploy
+
+variables:
+  CYPRESS_CACHE_FOLDER: "$CI_PROJECT_DIR/.Cypress"
+
+cache:
+  key: ${CI_COMMIT_REF_SLUG}
+  paths:
+    - .npm
+    - .Cypress
+
+workflow:
+  rules:
+    - if: "$CI_COMMIT_BRANCH =~ /^sprint-.*$/"
+      when: always
+    - if: '$CI_COMMIT_BRANCH == "master"'
+      when: always
+
+deploy-dev:
+  variables:
+    NG_CLI_ANALYTICS: "false"
+  image: node:16-alpine
+  stage: deploy
+  script:
+    # - npm install --package-lock-only
+    - npm ci --cache .npm --prefer-offline
+    # build command
+    - npm run build:web-dev
+    - chown -R 1000:1000 dist/
+    - rm -rf /data/dev/app/frontend/web/*
+    - cp -aT dist/*/web/ /data/dev/app/frontend/web
+  only:
+    - /^sprint-.*$/

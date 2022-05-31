@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  db:
+    env_file:
+      - config/.main.env
+    image: postgres:latest
+    # command: sleep 3000
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 512m
+    environment:
+      POSTGRES_DB: your_database
+      POSTGRES_USER: your_user
+      POSTGRES_PASSWORD: your_pass
+    volumes:
+      - /data/dev/postgres:/var/lib/postgresql/data
+    networks:
+      - network
+
+  redis:
+    env_file:
+      - config/.main.env
+    image: redis:latest
+    command: "redis-server --requirepass password"
+    networks:
+      - network
+
+networks:
+  network:
+    name: dev_network

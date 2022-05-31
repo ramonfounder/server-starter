@@ -1,0 +1,33 @@
+version: "3.9"
+
+services:
+  management:
+    env_file:
+      - config/.app.env
+    image: openjdk:17-slim-buster
+    command: ["java", "-jar", "app.jar", "--spring.profiles.active=docker"]
+    working_dir: /jar
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          memory: 512m
+    volumes:
+      - type: bind
+        source: /data/dev/app/backend/management
+        target: /jar
+        read_only: true
+      - type: bind
+        source: /data/dev/storage
+        target: /storage
+    networks:
+      - network
+    depends_on:
+      - db
+      - redis
+      - webserver
+
+networks:
+  network:
+    name: dev_network
+    external: true
